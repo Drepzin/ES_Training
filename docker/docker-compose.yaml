@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: commerce-pstg
+    environment:
+      POSTGRES_DB: es-commerce
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/data
+volumes:
+  postgres_data:
