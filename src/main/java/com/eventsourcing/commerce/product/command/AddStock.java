@@ -1,4 +1,4 @@
 package com.eventsourcing.commerce.product.command;
 
-public record AddStock() {
+public record AddStock(Integer quantity) {
 }

@@ -67,7 +67,7 @@ public class Client {
     public DomainEvent handle(DeactivateClient deactivateClient){
         if(this.clientId == null)throw new InvalidAggregateValue("Client does not exists");
         if(!this.active){
-            throw new IllegalArgumentException("Client is already deactivated");
+            throw new InvalidAggregateValue("Client is already deactivated");
         }
         ClientDeactivated clientDeactivated = new ClientDeactivated(this.clientId);
         this.apply(clientDeactivated);

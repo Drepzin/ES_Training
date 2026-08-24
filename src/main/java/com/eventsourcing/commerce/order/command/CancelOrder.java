@@ -1,4 +1,4 @@
 package com.eventsourcing.commerce.order.command;
 
-public record CancelOrder() {
+public record CancelOrder(String reason) {
 }

@@ -1,4 +1,4 @@
 package com.eventsourcing.commerce.product.command;
 
-public record ReleaseStock() {
+public record ReleaseStock(Integer quantity) {
 }

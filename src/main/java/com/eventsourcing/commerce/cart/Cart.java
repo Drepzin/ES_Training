@@ -4,6 +4,8 @@ import com.eventsourcing.commerce.cart.command.*;
 import com.eventsourcing.commerce.cart.event.*;
 import com.eventsourcing.commerce.eventStore.DomainEvent;
 import com.eventsourcing.commerce.eventStore.exception.InvalidAggregateValue;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Getter
+@EqualsAndHashCode(of = "cartId")
 public class Cart {
 
     private UUID cartId;
@@ -106,13 +110,19 @@ public class Cart {
         return productRemovedFromCart;
     }
 
+    public DomainEvent handle(DeleteProductInCart deleteProductInCart){
+        UUID productId = deleteProductInCart.productId();
+        validateDeleteProductFromCart(productId);
+        ProductDeletedFromCart productDeletedFromCart = new ProductDeletedFromCart(this.cartId, productId, products.get(productId));
+        this.apply(productDeletedFromCart);
+        return productDeletedFromCart;
+    }
+
     public DomainEvent handle(ExpireCartItem expireCartItem){
-        UUID cartId = expireCartItem.cartId();
         UUID productId = expireCartItem.productId();
-        Integer quantity = expireCartItem.quantity();
         validateCartFields(cartId, this.clientId);
-        validateProductFields(productId, quantity);
-        ProductExpiredInCart productExpiredInCart = new ProductExpiredInCart(cartId, productId, quantity);
+        if(productId == null)throw new InvalidAggregateValue("Product id cannot be null");
+        ProductExpiredInCart productExpiredInCart = new ProductExpiredInCart(cartId, productId, products.get(productId));
         this.apply(productExpiredInCart);
         return productExpiredInCart;
     }
@@ -125,5 +135,12 @@ public class Cart {
     private void validateProductFields(UUID productId, Integer quantity){
         if(productId == null)throw new InvalidAggregateValue("Product id cannot be null");
         if(quantity == null || quantity <= 0)throw new InvalidAggregateValue("Invalid product quantity must be higher than zero");
+    }
+
+    private void validateDeleteProductFromCart(UUID productId){
+        if(this.cartId == null)throw new InvalidAggregateValue("Cart id cannot be null");
+        if(productId == null)throw new InvalidAggregateValue("Product id cannot be null");
+        if(!this.products.containsKey(productId))throw new InvalidAggregateValue("Product not in cart");
+        ProductDeletedFromCart productDeletedFromCart = new ProductDeletedFromCart(this.cartId, productId, products.get(productId));
     }
 }

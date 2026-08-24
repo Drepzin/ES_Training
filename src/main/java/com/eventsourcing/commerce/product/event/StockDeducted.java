@@ -2,5 +2,7 @@ package com.eventsourcing.commerce.product.event;
 
 import com.eventsourcing.commerce.eventStore.DomainEvent;
 
-public record StockDeducted() implements DomainEvent {
+import java.util.UUID;
+
+public record StockDeducted(UUID productId, Integer quantity) implements DomainEvent {
 }

@@ -1,4 +1,4 @@
 package com.eventsourcing.commerce.order.command;
 
-public record PayOrder() {
+public record PayOrder(String paymentMethod) {
 }
