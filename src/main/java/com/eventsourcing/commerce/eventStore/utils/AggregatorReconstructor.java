@@ -14,12 +14,13 @@ public class AggregatorReconstructor{
 
     private final EventStore eventStore;
 
-    public <T> T reconstructAggregate(String streamId, Function<List<DomainEvent>, T> reconstructor){
+    public <T> AggregateSequence<T> reconstructAggregate(String streamId, Function<List<DomainEvent>, T> reconstructor){
         if(streamId.isBlank()){
             throw new RuntimeException("Invalid stream id");
         }
         List<DomainEvent> events = eventStore.findEvents(streamId);
-        return reconstructor.apply(events);
+        T aggregate = reconstructor.apply(events);
+        return new AggregateSequence<T>(aggregate, events.size());
     }
 
 }
