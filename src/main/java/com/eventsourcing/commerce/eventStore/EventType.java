@@ -3,6 +3,7 @@ package com.eventsourcing.commerce.eventStore;
 public enum EventType {
     CART_CREATED,
     PRODUCT_ADDED_IN_CART,
+    PRODUCT_DELETED_FROM_CART,
     PRODUCT_REMOVED_FROM_CART,
     CART_ITEM_EXPIRED,
     PRODUCT_UPDATED_IN_CART,
