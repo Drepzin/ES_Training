@@ -12,6 +12,7 @@ import com.eventsourcing.commerce.order.controller.dto.PlaceOrderRequest;
 import com.eventsourcing.commerce.product.LoadedProduct;
 import com.eventsourcing.commerce.product.Product;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -22,6 +23,7 @@ public class OrderService {
 
     private final EventStore eventStore;
     private final AggregatorReconstructor aggregatorReconstructor;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public void placeOrder(PlaceOrderRequest placeOrderRequest){
         Order order = new Order();
@@ -30,18 +32,21 @@ public class OrderService {
         DomainEvent domainEvent = order.handle(placeOrder);
         String streamId = "order-" + orderId;
         persist(streamId, 0, EventType.ORDER_PAID, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     public void paidOrder(PayOrder payOrder, UUID orderId){
         LoadedOrder loadedOrder = load(orderId);
         DomainEvent domainEvent = loadedOrder.order().handle(payOrder);
         persist(loadedOrder.streamId(), loadedOrder.nextSequence(), EventType.ORDER_PAID, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     public void cancelOrder(CancelOrder cancelOrder, UUID orderId){
         LoadedOrder loadedOrder = load(orderId);
         DomainEvent domainEvent = loadedOrder.order().handle(cancelOrder);
         persist(loadedOrder.streamId(), loadedOrder.nextSequence(), EventType.ORDER_CANCELED, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     private void persist(String streamId, int sequence, EventType eventType, DomainEvent payload) {

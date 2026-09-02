@@ -6,6 +6,7 @@ import com.eventsourcing.commerce.eventStore.utils.AggregatorReconstructor;
 import com.eventsourcing.commerce.product.command.*;
 import com.eventsourcing.commerce.product.controller.dto.RegisterProductRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,8 +18,9 @@ public class ProductService {
 
     private final EventStore eventStore;
     private final AggregatorReconstructor aggregatorReconstructor;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public void registerProduct(RegisterProductRequest registerProductRequest){
+    public UUID registerProduct(RegisterProductRequest registerProductRequest){
         UUID productId = UUID.randomUUID();
         String productName = registerProductRequest.productName();
         BigDecimal unityValue = registerProductRequest.unityValue();
@@ -29,42 +31,50 @@ public class ProductService {
         DomainEvent domainEvent = product.handle(registerProduct);
         String streamId = "product-" + productId;
         persist(streamId, 0, EventType.PRODUCT_REGISTERED, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
+        return productId;
     }
 
     public void addStock(AddStock addStock, UUID productId){
         LoadedProduct loadedProduct = load(productId);
         DomainEvent domainEvent = loadedProduct.product().handle(addStock);
         persist(loadedProduct.streamId(), loadedProduct.nextSequence(), EventType.STOCK_ADDED, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     public void deductStock(DeductStock deductStock, UUID productId){
         LoadedProduct loadedProduct = load(productId);
         DomainEvent domainEvent = loadedProduct.product().handle(deductStock);
         persist(loadedProduct.streamId(), loadedProduct.nextSequence(), EventType.STOCK_DEDUCTED, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     public void discontinueProduct(DiscontinueProduct discontinueProduct, UUID productId){
         LoadedProduct loadedProduct = load(productId);
         DomainEvent domainEvent = loadedProduct.product().handle(discontinueProduct);
         persist(loadedProduct.streamId(), loadedProduct.nextSequence(), EventType.PRODUCT_DISCONTINUED, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     public void releaseStock(ReleaseStock releaseStock, UUID productId){
         LoadedProduct loadedProduct = load(productId);
         DomainEvent domainEvent = loadedProduct.product().handle(releaseStock);
         persist(loadedProduct.streamId(), loadedProduct.nextSequence(), EventType.STOCK_RELEASED, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     public void reserveStock(ReserveStock reserveStock, UUID productId){
         LoadedProduct loadedProduct = load(productId);
         DomainEvent domainEvent = loadedProduct.product().handle(reserveStock);
         persist(loadedProduct.streamId(), loadedProduct.nextSequence(), EventType.STOCK_RESERVED, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     public void updateProduct(UpdateProduct updateProduct, UUID productId){
         LoadedProduct loadedProduct = load(productId);
         DomainEvent domainEvent = loadedProduct.product().handle(updateProduct);
         persist(loadedProduct.streamId(), loadedProduct.nextSequence(), EventType.PRODUCT_UPDATED, domainEvent);
+        applicationEventPublisher.publishEvent(domainEvent);
     }
 
     private void persist(String streamId, int sequence,  EventType eventType, DomainEvent payload) {

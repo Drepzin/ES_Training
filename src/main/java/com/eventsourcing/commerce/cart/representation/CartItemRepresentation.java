@@ -1,34 +1,33 @@
-package com.eventsourcing.commerce.order.representation;
+package com.eventsourcing.commerce.cart.representation;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Entity
-@Table(name = "order_item_representation")
+@Table(name = "cart_item_representation")
 @Data
 @NoArgsConstructor
-public class OrderItemRepresentation {
+public class CartItemRepresentation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false, name = "cart_id")
+    private UUID cartId;
+
     @Column(nullable = false, name = "product_id")
     private UUID productId;
-
-    @Column(nullable = false, name = "order_id")
-    private UUID orderId;
 
     @Column(nullable = false)
     private int quantity;
 
-    public OrderItemRepresentation(UUID productId, UUID orderId, int quantity){
+    public CartItemRepresentation(UUID cartId, UUID productId, int quantity){
+        this.cartId = cartId;
         this.productId = productId;
-        this.orderId = orderId;
         this.quantity = quantity;
     }
 }
